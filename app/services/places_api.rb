@@ -15,7 +15,7 @@ class PlacesApi
     venues = JSON.parse(venues_from_category)
     # venues["response"]["venues"].map do | v |
     venues["response"]["groups"][0]['items'].map do | v |
-       v['venue']["id"]
+      v['venue']["id"]
     end
   end
 

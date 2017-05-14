@@ -60,7 +60,7 @@ class ConfirmationsController < ApplicationController
 
 private
   def search_zone
-    #Building array of markets with leaving lat/lng of the confirmations
+    #Building array of markers with leaving lat/lng of the confirmations
     confirmations = Confirmation.all.where('hangout_id = ?',@hangout.id)
 
     #Getting unadjusted search zone

@@ -21,6 +21,12 @@ gem 'simple_form'
 gem 'autoprefixer-rails'
 gem 'rails-assets-clipboard', source: 'https://rails-assets.org'
 
+gem 'sidekiq'
+gem 'sidekiq-failures'
+# dependency for the Sidekiq Web UI
+# => https://github.com/mperham/sidekiq/wiki.Monitoring
+gem 'sinatra', ">= 2.0.0.beta2", require: false
+
 # materialize CSS
 gem 'materialize-sass'
 
