@@ -21,7 +21,7 @@ gem 'simple_form'
 gem 'autoprefixer-rails'
 gem 'rails-assets-clipboard', source: 'https://rails-assets.org'
 
-gem 'sidekiq'
+gem 'sidekiq', '4.1.2'
 gem 'sidekiq-failures'
 # dependency for the Sidekiq Web UI
 # => https://github.com/mperham/sidekiq/wiki.Monitoring

@@ -92,12 +92,14 @@
 
   def launch_vote
     # Call PlacesAPI to create place_options
-    initialize_places_api
+    # initialize_places_api
+    PlacesfoursquareJob.perform_later(@hangout.id)
+
     @hangout.status = "vote_on_going"
     @hangout.save
     @hangout.confirmations.each do |confirmation|
       if confirmation.user != @hangout.user
-        HangoutMailer.vote_starting(confirmation).deliver_now ####   mail
+        HangoutMailer.vote_starting(confirmation).deliver_later ####   mail
       end
     end
     redirect_to hangout_path(@hangout)
@@ -209,10 +211,20 @@ private
       @center = {lat: @hangout.latitude, lng: @hangout.longitude}
       @adj_center = {lat: @hangout.adj_latitude, lng: @hangout.adj_longitude}
       @hangout.radius? ? @radius = @hangout.radius : @radius = 1  #necessary so that javascript can be compiled with radius nil
+
     elsif @hangout.status == "vote_on_going"
       @render = 'vote_option'
       @nb_conf = @hangout.confirmations.count
       @nb_vote = @hangout.confirmations.reduce(0) {|sum,conf| conf.place_id.nil? ? sum : sum  += 1}
+
+      unless @hangout.place_options.first.nil?
+        places = @hangout.place_options
+        respond_to do |format|
+          format.html # show.html.erb
+          format.json { render json: places }
+        end
+      end
+
     elsif @hangout.status == "result"
       @render = 'result'
       #confirmation

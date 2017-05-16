@@ -2,6 +2,7 @@ class PlacesfoursquareJob < ApplicationJob
   queue_as :default
 
   def perform(hangout_id)
+    sleep 5
     hg = Hangout.find(hangout_id)
     url = "https://api.foursquare.com/v2/venues/explore?ll=#{hg.adj_latitude},#{hg.adj_longitude}&radius=2000&section=#{hg.category}&client_id=#{ENV['CLIENT_ID']}&client_secret=#{ENV['CLIENT_SECRET']}&v=20170101"
     url.gsub!('"')
@@ -57,6 +58,8 @@ class PlacesfoursquareJob < ApplicationJob
       po.place =  result
       po.save
     end
+    hg.status = "vote_on_going"
+    hg.save
   end
 end
 
