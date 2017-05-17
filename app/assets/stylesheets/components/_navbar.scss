@@ -1,6 +1,8 @@
 .avatar-navbar-wrapper {
   img {
-  width: 12rem;
-  margin-top: 4em;
-}
+    object-fit: cover;
+    height: 12rem;
+    width: 12rem;
+    margin-top: 4em;
+  }
 }
