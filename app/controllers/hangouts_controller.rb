@@ -80,19 +80,12 @@
   end
   helper_method :has_voted?
 
-  def place_list
-    @hangout.place_options
-  end
-  helper_method :place_list
-
   def voted_place
     confirmation.place
   end
   helper_method :voted_place
 
   def launch_vote
-    # Call PlacesAPI to create place_options
-    # initialize_places_api
     PlacesfoursquareJob.perform_later(@hangout.id)
 
     @hangout.status = "vote_on_going_transition" #will pass to "vote_on_going" upon completion of the 4square search
@@ -220,7 +213,6 @@ private
       unless @hangout.place_options.first.nil?
         places = @hangout.place_options
         respond_to do |format|
-          puts "*********** je passe dans respond_to **********"
           format.html # show.html.erb
           format.json { render json: places }
           format.js # show.js.erb
@@ -245,12 +237,6 @@ private
     elsif @hangout.status == "cancelled"
       @render = 'cancelled'
     end
-  end
-
-  def initialize_places_api
-    fetch = PlacesApi.new(@hangout)
-    venues = fetch.fetch_places
-    fetch.find_places(venues)
   end
 
   def get_direction(confirmation, destination, departure_time)

@@ -22,8 +22,8 @@ class ConfirmationsController < ApplicationController
       if @hangout.confirmations.count == 1
         # if 1st confirmation, initiate hangout geo data
         if @hangout.optimize_location == false
-          initialize_places_api
-          @hangout.status = "vote_on_going"
+          PlacesfoursquareJob.perform_later(@hangout.id)
+          @hangout.status = "vote_on_going_transition" #will pass to "vote_on_going" upon completion of the 4square search
         else
           @hangout.adj_latitude = @confirmation.latitude
           @hangout.adj_longitude = @confirmation.longitude
