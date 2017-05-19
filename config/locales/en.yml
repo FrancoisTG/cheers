@@ -6,9 +6,9 @@ en:
     options:
       hangout:
         category:
-          Food: 'Restaurant'
-          Drinks: 'Bar'
-          Coffee: 'Coffee'
+          Food: 'restaurant'
+          Drinks: 'bar'
+          Coffee: 'coffee'
   confirmation_mailer:
     guest_cancelled:
       content: Bad news, %{guest_name} won't be able to make it to "%{hangout_title}".
@@ -191,14 +191,18 @@ en:
     vote_option:
       button_final_vote: Close votation
       has_voted: Nice Choice! You will be notified when vote end.
-      list: We selected 5 of the best %{category} places, in a location that suits all the guests.
       message: "%{title} is coming soon!"
       nb_conf: Number of confirmations
       nb_vote: Number of votes
-      status: Time to vote!
       status-voted: Waiting for the votation to finish
       vote: Vote for your Favorite!
       wait: Wait for the votation to finish
+      list: We selected 5 of the best %{category}s, in a location that suits all the guests.
+      status: Time to vote!
+      search_status: We are looking for the best %{category}s in the region
+    list_place_options:
+      list: We selected 5 of the best %{category}s, in a location that suits all the guests.
+      status: Time to vote!
   hello: Hello world
   layouts:
     application:

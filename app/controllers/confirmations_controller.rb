@@ -29,7 +29,7 @@ class ConfirmationsController < ApplicationController
           @hangout.adj_longitude = @confirmation.longitude
           @hangout.latitude = @confirmation.latitude
           @hangout.longitude = @confirmation.longitude
-          @hangout.radius = 600
+          @hangout.radius = 800
         end
         @hangout.save
         if @hangout.user == current_user
@@ -96,7 +96,7 @@ private
     delta_lng = (confirmations.max_by {|x| x.longitude}).longitude - (confirmations.min_by {|x| x.longitude}).longitude
     raw_radius = (delta_lat + delta_lng) / 4
     magic_factor = 20000 #factor to size sensibility of the radius vs. distance between participants
-    min_radius = 600
+    min_radius = 800
     @hangout.radius = [raw_radius * magic_factor, min_radius].max
     return center
   end

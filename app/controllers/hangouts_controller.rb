@@ -36,7 +36,7 @@
       if @hangout.optimize_location == false
         @hangout.adj_latitude = @hangout.latitude
         @hangout.adj_longitude = @hangout.longitude
-        @hangout.radius = 600
+        @hangout.radius = 800
       end
       if @hangout.save
       HangoutMailer.creation_confirmation(@hangout).deliver_now    ####   mail
@@ -95,7 +95,7 @@
     # initialize_places_api
     PlacesfoursquareJob.perform_later(@hangout.id)
 
-    @hangout.status = "vote_on_going"
+    @hangout.status = "vote_on_going_transition" #will pass to "vote_on_going" upon completion of the 4square search
     @hangout.save
     @hangout.confirmations.each do |confirmation|
       if confirmation.user != @hangout.user
@@ -212,7 +212,7 @@ private
       @adj_center = {lat: @hangout.adj_latitude, lng: @hangout.adj_longitude}
       @hangout.radius? ? @radius = @hangout.radius : @radius = 1  #necessary so that javascript can be compiled with radius nil
 
-    elsif @hangout.status == "vote_on_going"
+    elsif @hangout.status == "vote_on_going" || @hangout.status == "vote_on_going_transition"
       @render = 'vote_option'
       @nb_conf = @hangout.confirmations.count
       @nb_vote = @hangout.confirmations.reduce(0) {|sum,conf| conf.place_id.nil? ? sum : sum  += 1}
@@ -220,8 +220,10 @@ private
       unless @hangout.place_options.first.nil?
         places = @hangout.place_options
         respond_to do |format|
+          puts "*********** je passe dans respond_to **********"
           format.html # show.html.erb
           format.json { render json: places }
+          format.js # show.js.erb
         end
       end
 

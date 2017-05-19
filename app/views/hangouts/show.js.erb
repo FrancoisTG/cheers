@@ -1,0 +1,8 @@
+// var test = $("<p>et ça c'est du render JS?</p>").hide();
+// $('#list-place-options').append(test);
+// test.slideDown();
+$('#list-place-options').empty();
+var test = $("<%= j render 'hangouts/list_place_options', hangout: @hangout %>").hide();
+$('#list-place-options').append(test);
+test.slideDown();
+
