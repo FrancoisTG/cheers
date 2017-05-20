@@ -10,32 +10,37 @@
         <h5><%= t('.host-collapse') %> </h5>
       </div>
           <div class="collapsible-body padded-small">
-          <% if @user.hangouts.future_hangout(Time.zone.now).valid.size == 0 %>
+          <% if @user.hangouts.future_hangout(Time.zone.now - 6 * 60 * 60).valid.size == 0 %>
             <p ><%= t('.host_zero_event') %> </p>
           <% else %>
-            <%@user.hangouts.order(date: :asc).future_hangout(Time.zone.now).valid.each do |hangout|%>
-            <p id="list_profile"><%= t('.host_list_html', link: link_to(hangout.title, hangout_path(hangout))) %></p>
-            <p><%= l hangout.date, format: :short %></p>
-            <div class=" valign-wrapper center-align" style="justify-content: center;">
-              <% if Confirmation.where( hangout: hangout, user: @user)[0].nil? %>
-                <%= button_to t('.button_set_location'), hangout_path(hangout), method: :get, class: "btn-small" %>
-              <% elsif hangout.status == "confirmations_on_going" %>
-                <%= button_to t('.button_launch_vote'), launch_vote_hangout_path(hangout), method: :patch, class: "btn-small" %>
-              <% elsif hangout.status == "vote_on_going" %>
-                <%= button_to t('.button_final_vote'), close_vote_hangout_path(hangout), method: :patch, class: "btn-small" %>
-              <% else %>
-                <%= button_to t('.vote_closed'), hangout_path(hangout), method: :get, class: "btn-small green lighten-1" %>
-              <% end %>
+            <!-- Display future hangouts only - 6h delta to see on-going hangouts -->
+            <%@user.hangouts.order(date: :asc).future_hangout(Time.zone.now - 6 * 60 * 60).valid.each do |hangout|%>
+              <p id="list_profile"><%= t('.host_list_html', link: link_to(hangout.title, hangout_path(hangout))) %></p>
+              <p><%= l hangout.date, format: :short %></p>
+              <div class=" valign-wrapper center-align" style="justify-content: center;">
 
-            <%= link_to edit_hangout_path(hangout), class: "btn-small lighten-1" do %>
-              <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                <% if Confirmation.where( hangout: hangout, user: @user)[0].nil? %>
+                  <%= button_to t('.button_set_location'), hangout_path(hangout), method: :get, class: "btn-small" %>
+                <% elsif hangout.status == "confirmations_on_going" %>
+                  <%= button_to t('.button_launch_vote'), launch_vote_hangout_path(hangout), method: :patch, class: "btn-small" %>
+                <% elsif hangout.status == "vote_on_going" %>
+                  <%= button_to t('.button_final_vote'), close_vote_hangout_path(hangout), method: :patch, class: "btn-small" %>
+                <% else %>
+                  <%= button_to t('.vote_closed'), hangout_path(hangout), method: :get, class: "btn-small green lighten-1" %>
+                <% end %>
+
+                <%= button_to share_hangout_path(hangout), method: :get, class: "btn-small green lighten-1" do %>
+                  <i class="material-icons">share</i>
+                <% end %>
+                <%= link_to edit_hangout_path(hangout), class: "btn-small lighten-1" do %>
+                  <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                <% end %>
+                <%= button_to cancel_hg_hangout_path(hangout),class:"btn-small red lighten-1", method: :patch, data: { confirm: t('.alert_delete') } do %>
+                  <i class="fa fa-trash-o" aria-hidden="true"></i>
+                <% end %>
+              </div>
+              <hr class="grey lighten-2">
             <% end %>
-            <%= button_to cancel_hg_hangout_path(hangout),class:"btn-small red lighten-1", method: :patch, data: { confirm: t('.alert_delete') } do %>
-              <i class="fa fa-trash-o" aria-hidden="true"></i>
-            <% end %>
-            </div>
-            <hr class="grey lighten-2">
-          <% end %>
         </div>
       <% end %>
     </li>
@@ -44,10 +49,10 @@
         <h5><%= t('.guest-collapse') %> </h5>
       </div>
         <div class="collapsible-body padded-small">
-          <% if @user.hangouts_as_guest.future_hangout(Time.zone.now).valid.size == 0 %>
+          <% if @user.hangouts_as_guest.future_hangout(Time.zone.now - 6 * 60 * 60).valid.size == 0 %>
             <p ><%= t('.guest_zero_event') %> </p>
           <% else %>
-          <%@user.hangouts_as_guest.order(date: :asc).future_hangout(Time.zone.now).valid.each do |hangout|%>
+          <%@user.hangouts_as_guest.order(date: :asc).future_hangout(Time.zone.now - 6 * 60 * 60).valid.each do |hangout|%>
         <p id="list_profile"><%= t('.guest_list_html', link: link_to(hangout.title, hangout_path(hangout)), host: hangout.user.first_name ) %></p>
         <p><%= l hangout.date, format: :short %></p>
         <div class=" valign-wrapper center-align" style="justify-content: center;">
