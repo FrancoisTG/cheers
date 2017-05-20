@@ -7,75 +7,148 @@
 
 <% if has_voted? %>
 <!-- status bar -->
-<div class="status-wrapper green">
-  <p class="white-text center-align"><%= t('.status-voted', default: 'Thanks for your vote! Wait for the votation to finish') %></p>
-</div>
-<!-- Only for hangout owner -->
-<div class="container center-align">
-<% if @hangout.user == current_user %>
-  <p><%=t('.nb_conf') + ": #{@nb_conf}"%></p>
-  <p><%=t('.nb_vote') + ": #{@nb_vote}"%></p>
-
-  <div class="final-vote">
-    <%= button_to t('.button_final_vote'), close_vote_hangout_path(@hangout), method: :patch, class: "btn  z-depth-1" %>
+  <div class="status-wrapper green">
+    <p class="white-text center-align"><%= t('.status-voted', default: 'Thanks for your vote! Wait for the votation to finish') %></p>
   </div>
-  </div>
-<% end %>
+  <!-- Only for hangout owner -->
+  <div class="container center-align">
+  <% if @hangout.user == current_user %>
+    <p><%=t('.nb_conf') + ": #{@nb_conf}"%></p>
+    <p><%=t('.nb_vote') + ": #{@nb_vote}"%></p>
 
-<!-- User choice -->
-<div class="container">
-  <h4 class="center-align padded-top-1"><%= t('.has_voted')%></h4>
-  <!-- <h1><%= voted_place.name %></h1> -->
-  <!-- <h2 class="center-align"><%= t('.wait')%></h2> -->
-  <div class="row place-wrapper z-depth-1">
-    <div class="content">
-      <h5><%= link_to voted_place.name, voted_place.fsq_url, target: 'blank'%></h5>
-      <h6><%= voted_place.address %></h6>
-      <ul class="list-inline rating_wrapper">
-        <li class="box-rating white-text"><%= voted_place.rating %>/10</li>
-      </ul>
+    <div class="final-vote">
+      <%= button_to t('.button_final_vote'), close_vote_hangout_path(@hangout), method: :patch, class: "btn  z-depth-1" %>
     </div>
-    <div class="">
-      <%= image_tag voted_place.photo_url %>
     </div>
-  </div>
-</div>
+  <% end %>
 
-<% else %>
-<!-- status bar -->
-<div class="status-wrapper orange-accent-2">
-  <p class="white-text center-align"><%= t('.status', default: 'Voting on! Choose your favorite!') %></p>
-</div>
-
-<!-- List of places -->
-<div class="container">
-  <div class="row">
-    <div class="col s12 m6 offset-m3 center-align">
-      <p>
-        <%= t('.list', category: t('simple_form.options.hangout.category.'+ @hangout.category ))%>
-      </p>
-      <%= image_tag('poweredbyfoursquare300.png', class: 'fsq-logo')%>
-    </div>
-  </div>
-</div>
+  <!-- User choice -->
   <div class="container">
-    <% place_list.first(5).each do |option|%>
+    <h4 class="center-align padded-top-1"><%= t('.has_voted')%></h4>
+    <!-- <h1><%= voted_place.name %></h1> -->
+    <!-- <h2 class="center-align"><%= t('.wait')%></h2> -->
     <div class="row place-wrapper z-depth-1">
       <div class="content">
-        <h5><%= link_to option.place.name, option.place.fsq_url, target: 'blank'%></h5>
-        <h6><%= option.place.address %></h6>
+        <h5><%= link_to voted_place.name, voted_place.fsq_url, target: 'blank'%></h5>
+        <h6><%= voted_place.address %></h6>
         <ul class="list-inline rating_wrapper">
-          <li class="box-rating white-text"><%= option.place.rating %>/10</li>
-          <%= button_to( submit_vote_hangout_path(@hangout), method: :patch, params: {place_id: option.place_id}, class: "btn-vote-card z-depth-0") do %>
-          Vote
-          <% end %>
+          <li class="box-rating white-text"><%= voted_place.rating %>/10</li>
         </ul>
       </div>
       <div class="">
-        <%= image_tag option.place.photo_url %>
+        <%= image_tag voted_place.photo_url %>
+      </div>
+    </div>
+  </div>
+
+
+<% else %>
+  <div id="list-place-options">
+
+  <% unless @hangout.status == "vote_on_going" %>
+    <!-- status bar -->
+    <div class="status-wrapper orange-accent-2">
+      <p class="white-text center-align"><%= t('.search_status', category: t('simple_form.options.hangout.category.'+ @hangout.category )) %></p>
+    </div>
+
+    <!-- header comment of list of places -->
+    <div class="container">
+      <div class="row">
+        <div class="col s12 m6 offset-m3 center-align">
+          <%= image_tag('poweredbyfoursquare300.png', class: 'fsq-logo')%>
+        </div>
       </div>
     </div>
 
-<% end %>
+    <!-- List of places - preloader -->
+    <div id="loader">
+      <div class="container">
+      <div class="row place-wrapper-loader">
+       <div class="preloader-wrapper active">
+          <div class="spinner-layer spinner-red-only">
+            <div class="circle-clipper left">
+              <div class="circle"></div>
+            </div><div class="gap-patch">
+              <div class="circle"></div>
+            </div><div class="circle-clipper right">
+              <div class="circle"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+
+  <% else %>
+    <!-- status bar -->
+    <div class="status-wrapper orange-accent-2">
+      <p class="white-text center-align"><%= t('.status', default: 'Voting on! Choose your favorite!') %></p>
+    </div>
+
+    <!-- header comment of list of places -->
+    <div class="container">
+      <div class="row">
+        <div class="col s12 m6 offset-m3 center-align">
+          <p>
+            <%= t('.list', category: t('simple_form.options.hangout.category.'+ @hangout.category ))%>
+          </p>
+          <%= image_tag('poweredbyfoursquare300.png', class: 'fsq-logo')%>
+        </div>
+      </div>
+    </div>
+
+    <!-- List of places -->
+    <div class="container">
+      <% @hangout.place_options.first(5).each do |option|%>
+        <div class="row place-wrapper z-depth-1">
+          <div class="content">
+            <h5><%= link_to option.place.name, option.place.fsq_url, target: 'blank'%></h5>
+            <h6><%= option.place.address %></h6>
+            <ul class="list-inline rating_wrapper">
+              <li class="box-rating white-text"><%= option.place.rating %>/10</li>
+              <%= button_to( submit_vote_hangout_path(@hangout), method: :patch, params: {place_id: option.place_id}, class: "btn-vote-card z-depth-0") do %>
+              Vote
+              <% end %>
+            </ul>
+          </div>
+          <div class="">
+            <%= image_tag option.place.photo_url %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+  <% end %>
   </div>
+<% end %>
+
+<% content_for(:after_js) do %>
+  <%= javascript_tag do %>
+    var ping = null;
+
+    $(document).ready(function () {
+      if (<%= "#{@hangout.place_options.count}"%> !== 0) {return};
+      ping = setInterval(test, 100);
+    });
+
+    function test() {
+      var url = "<%= "/hangouts/#{@hangout.id}"%>"
+      console.log(url);
+      $.ajax({
+        type: "GET",
+        dataType: "json",
+        url: url,
+        success: function(data){
+          console.log(data);
+          clearInterval(ping);
+          $.ajax({
+            type: "GET",
+            dataType: "script",
+            url: url,
+            success: function(data){console.log(data)}
+          });
+        }
+      });
+    }
+  <% end %>
 <% end %>

@@ -6,9 +6,9 @@ pt-BR:
     options:
       hangout:
         category:
-          Food: 'Restaurante'
-          Drinks: 'Bar'
-          Coffee: 'Café'
+          Food: 'restaurante'
+          Drinks: 'bar'
+          Coffee: 'café'
   confirmation_mailer:
     guest_cancelled:
       content: Que pena, o %{guest_name} não vai conseguir vir no seu encontro "%{hangout_title}".
@@ -182,14 +182,18 @@ pt-BR:
     vote_option:
       button_final_vote: Encerrar votação
       has_voted: 'A sua escolha foi:'
-      list: "Filtramos 5 dos melhores %{category}s, na melhor região para todos. Vote em uma das opções abaixo:"
       message: "%{title} esta chegando!"
       nb_conf: Número de confirmações
       nb_vote: Número de votos
-      status: Evento aberto para votação
       status-voted: Aguarde a votação terminar
       vote: Selecione o seu favorito!
       wait: Agora é só aguardar a votação terminar
+      list: "Filtramos 5 dos melhores %{category}s, na melhor região para todos. Vote em uma das opções abaixo:"
+      status: Evento aberto para votação
+      search_status: Buscando os melhores %{category}s na região ...
+    list_place_options:
+      list: "Filtramos 5 dos melhores %{category}s, na melhor região para todos. Vote em uma das opções abaixo:"
+      status: Evento aberto para votação
   hello: Olá mundo
   layouts:
     application:

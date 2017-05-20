@@ -22,14 +22,14 @@ class ConfirmationsController < ApplicationController
       if @hangout.confirmations.count == 1
         # if 1st confirmation, initiate hangout geo data
         if @hangout.optimize_location == false
-          initialize_places_api
-          @hangout.status = "vote_on_going"
+          PlacesfoursquareJob.perform_later(@hangout.id)
+          @hangout.status = "vote_on_going_transition" #will pass to "vote_on_going" upon completion of the 4square search
         else
           @hangout.adj_latitude = @confirmation.latitude
           @hangout.adj_longitude = @confirmation.longitude
           @hangout.latitude = @confirmation.latitude
           @hangout.longitude = @confirmation.longitude
-          @hangout.radius = 600
+          @hangout.radius = 800
         end
         @hangout.save
         if @hangout.user == current_user
@@ -60,7 +60,7 @@ class ConfirmationsController < ApplicationController
 
 private
   def search_zone
-    #Building array of markets with leaving lat/lng of the confirmations
+    #Building array of markers with leaving lat/lng of the confirmations
     confirmations = Confirmation.all.where('hangout_id = ?',@hangout.id)
 
     #Getting unadjusted search zone
@@ -96,7 +96,7 @@ private
     delta_lng = (confirmations.max_by {|x| x.longitude}).longitude - (confirmations.min_by {|x| x.longitude}).longitude
     raw_radius = (delta_lat + delta_lng) / 4
     magic_factor = 20000 #factor to size sensibility of the radius vs. distance between participants
-    min_radius = 600
+    min_radius = 800
     @hangout.radius = [raw_radius * magic_factor, min_radius].max
     return center
   end

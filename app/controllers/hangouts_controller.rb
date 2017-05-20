@@ -36,7 +36,7 @@
       if @hangout.optimize_location == false
         @hangout.adj_latitude = @hangout.latitude
         @hangout.adj_longitude = @hangout.longitude
-        @hangout.radius = 600
+        @hangout.radius = 800
       end
       if @hangout.save
       HangoutMailer.creation_confirmation(@hangout).deliver_now    ####   mail
@@ -80,24 +80,19 @@
   end
   helper_method :has_voted?
 
-  def place_list
-    @hangout.place_options
-  end
-  helper_method :place_list
-
   def voted_place
     confirmation.place
   end
   helper_method :voted_place
 
   def launch_vote
-    # Call PlacesAPI to create place_options
-    initialize_places_api
-    @hangout.status = "vote_on_going"
+    PlacesfoursquareJob.perform_later(@hangout.id)
+
+    @hangout.status = "vote_on_going_transition" #will pass to "vote_on_going" upon completion of the 4square search
     @hangout.save
     @hangout.confirmations.each do |confirmation|
       if confirmation.user != @hangout.user
-        HangoutMailer.vote_starting(confirmation).deliver_now ####   mail
+        HangoutMailer.vote_starting(confirmation).deliver_later ####   mail
       end
     end
     redirect_to hangout_path(@hangout)
@@ -209,10 +204,21 @@ private
       @center = {lat: @hangout.latitude, lng: @hangout.longitude}
       @adj_center = {lat: @hangout.adj_latitude, lng: @hangout.adj_longitude}
       @hangout.radius? ? @radius = @hangout.radius : @radius = 1  #necessary so that javascript can be compiled with radius nil
-    elsif @hangout.status == "vote_on_going"
+
+    elsif @hangout.status == "vote_on_going" || @hangout.status == "vote_on_going_transition"
       @render = 'vote_option'
       @nb_conf = @hangout.confirmations.count
       @nb_vote = @hangout.confirmations.reduce(0) {|sum,conf| conf.place_id.nil? ? sum : sum  += 1}
+
+      unless @hangout.place_options.first.nil?
+        places = @hangout.place_options
+        respond_to do |format|
+          format.html # show.html.erb
+          format.json { render json: places }
+          format.js # show.js.erb
+        end
+      end
+
     elsif @hangout.status == "result"
       @render = 'result'
       #confirmation
@@ -231,12 +237,6 @@ private
     elsif @hangout.status == "cancelled"
       @render = 'cancelled'
     end
-  end
-
-  def initialize_places_api
-    fetch = PlacesApi.new(@hangout)
-    venues = fetch.fetch_places
-    fetch.find_places(venues)
   end
 
   def get_direction(confirmation, destination, departure_time)
