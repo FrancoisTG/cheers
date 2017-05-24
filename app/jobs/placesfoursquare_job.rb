@@ -36,8 +36,8 @@ class PlacesfoursquareJob < ApplicationJob
           venue = Place.create(
             name: venue_hash['name'],
             address: "#{venue_hash['location']['address']}, #{venue_hash['location']['city']}, #{venue_hash['location']['state']} ",
-            longitude:venue_hash['location']['lat'],
-            latitude:venue_hash['location']['lng'],
+            longitude:venue_hash['location']['lng'],
+            latitude:venue_hash['location']['lat'],
             category: hg.category,
             rating: venue_hash['rating'],
             fsq_id: venue_hash['id'],

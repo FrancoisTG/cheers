@@ -184,7 +184,7 @@ private
   end
 
   def set_hangout
-    @hangout = Hangout.find(params[:id])
+    @hangout = Hangout.friendly.find(params[:id])
     authorize @hangout
   end
 

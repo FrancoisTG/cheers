@@ -17,8 +17,9 @@ class Hangout < ApplicationRecord
   scope :past_hangout, ->(time) { where("date < ?", time) }
   scope :future_hangout, ->(time) { where("date > ?", time) }
 
-
-  geocoded_by :center_address
-  after_validation :geocode, if: :center_address?
+  extend FriendlyId
+  friendly_id :title, use: :slugged
+  # geocoded_by :center_address
+  # after_validation :geocode, if: :center_address?
 
 end
