@@ -18,6 +18,10 @@ class ConfirmationsController < ApplicationController
     @confirmation.hangout = @hangout
     authorize @confirmation
 
+    unless @hangout.optimize_location == false || @hangout.confirmations.count == 0
+      search_zone
+    end
+
     if @confirmation.save
       if @hangout.confirmations.count == 1
         # if 1st confirmation, initiate hangout geo data
@@ -35,14 +39,11 @@ class ConfirmationsController < ApplicationController
         if @hangout.user == current_user
           redirect_to share_hangout_path(@hangout)
         else
-          ConfirmationMailer.guest_confirmed(@confirmation).deliver_now    ####   mail
+          ConfirmationMailer.guest_confirmed(@confirmation).deliver_later    ####   mail
           redirect_to hangout_path(@hangout)
         end
       else
-        unless @hangout.optimize_location == false
-          search_zone
-        end
-        ConfirmationMailer.guest_confirmed(@confirmation).deliver_now    ####   mail
+        ConfirmationMailer.guest_confirmed(@confirmation).deliver_later    ####   mail
         redirect_to hangout_path(@hangout)
       end
     else
@@ -54,7 +55,7 @@ class ConfirmationsController < ApplicationController
     authorize @confirmation
     @confirmation.destroy
     redirect_to profiles_show_path
-    ConfirmationMailer.guest_cancelled(@confirmation).deliver_now    ####   mail
+    ConfirmationMailer.guest_cancelled(@confirmation).deliver_later    ####   mail
     flash[:notice] = "Cancelamento feito!"
   end
 
@@ -112,9 +113,12 @@ private
 
   def get_direction(confirmation, destination, departure_time)
     url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=#{confirmation.latitude},#{confirmation.longitude}&destinations=#{destination[:lat]},#{destination[:lng]}&departure_time=#{departure_time.to_i}&mode=#{confirmation.transportation.downcase}&key=#{ENV['GOOGLE_API_SERVER_KEY']}"
+    puts "****************url = #{url}"
     url.gsub!('"')
-    direction = RestClient.get url
-    direction_info = JSON.parse(direction)
+    direction_anwser = RestClient.get url, {accept: :json}
+    #direction_anwser = RestClient::Request.execute(method: :get, url: url, timeout: 30)
+
+    direction_info = JSON.parse(direction_anwser)
     confirmation.distance_to_place = direction_info["rows"][0]["elements"][0]["distance"]["value"]
     if confirmation.transportation == 'DRIVING'
       confirmation.time_to_place = direction_info["rows"][0]["elements"][0]["duration_in_traffic"]["value"]
@@ -127,7 +131,7 @@ private
   end
 
   def set_hangout
-    @hangout = Hangout.find(params[:hangout_id])
+    @hangout = Hangout.friendly.find(params[:hangout_id])
   end
 
   def confirmation_params
@@ -136,9 +140,4 @@ private
     params.require(:confirmation).permit(:leaving_address, :transportation, :latitude, :longitude)
   end
 
-  def initialize_places_api
-    fetch = PlacesApi.new(@hangout)
-    venues = fetch.fetch_places
-    fetch.find_places(venues)
-  end
 end

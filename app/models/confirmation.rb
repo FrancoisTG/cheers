@@ -11,7 +11,7 @@ class Confirmation < ApplicationRecord
   validates :user_id, presence: true, uniqueness: { scope: :hangout }
   validates :hangout_id, presence: true
 
-  geocoded_by :leaving_address
-  before_validation :geocode, if: :leaving_address?
+  # geocoded_by :leaving_address
+  # before_validation :geocode, if: :leaving_address?
 
 end

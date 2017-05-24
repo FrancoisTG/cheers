@@ -49,6 +49,8 @@ gem 'rails-assets-geolocator', source: 'https://rails-assets.org'
 gem 'omniauth'
 gem 'omniauth-facebook'
 
+gem 'friendly_id', '~> 5.1.0'
+
 #Authorizations
 gem 'pundit'
 
