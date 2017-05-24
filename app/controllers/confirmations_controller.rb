@@ -18,9 +18,6 @@ class ConfirmationsController < ApplicationController
     @confirmation.hangout = @hangout
     authorize @confirmation
 
-    unless @hangout.optimize_location == false || @hangout.confirmations.count == 0
-      search_zone
-    end
 
     if @confirmation.save
       if @hangout.confirmations.count == 1
@@ -43,6 +40,9 @@ class ConfirmationsController < ApplicationController
           redirect_to hangout_path(@hangout)
         end
       else
+        unless @hangout.optimize_location == false || @hangout.confirmations.count == 0
+          search_zone
+        end
         ConfirmationMailer.guest_confirmed(@confirmation).deliver_later    ####   mail
         redirect_to hangout_path(@hangout)
       end
