@@ -1,6 +1,6 @@
 class ConfirmationsController < ApplicationController
   before_action :set_hangout
-  before_action :set_confirmation, only: [:edit, :update, :destroy]
+  before_action :set_confirmation, only: [:destroy]
 
   def new
     if @hangout.confirmations.where('user_id = ?', current_user).count == 0
@@ -40,7 +40,7 @@ class ConfirmationsController < ApplicationController
           redirect_to hangout_path(@hangout)
         end
       else
-        unless @hangout.optimize_location == false || @hangout.confirmations.count == 0
+        unless @hangout.optimize_location == false
           search_zone
         end
         ConfirmationMailer.guest_confirmed(@confirmation).deliver_later    ####   mail
@@ -52,18 +52,17 @@ class ConfirmationsController < ApplicationController
   end
 
   def destroy
-    authorize @confirmation
     @confirmation.destroy
+    search_zone
     redirect_to profiles_show_path
     ConfirmationMailer.guest_cancelled(@confirmation).deliver_later    ####   mail
     flash[:notice] = "Cancelamento feito!"
   end
 
-private
+
   def search_zone
     #Building array of markers with leaving lat/lng of the confirmations
     confirmations = Confirmation.all.where('hangout_id = ?',@hangout.id)
-
     #Getting unadjusted search zone
     center = fetch_zone(confirmations)
 
@@ -86,7 +85,7 @@ private
     @hangout.adj_longitude = adj_center2[:lng]
     @hangout.save
   end
-
+private
   def fetch_zone(confirmations)
     nb = confirmations.count
     avg_lat = confirmations.reduce(0){ |sum, el| sum + el.latitude}.to_f / nb
@@ -132,6 +131,12 @@ private
 
   def set_hangout
     @hangout = Hangout.friendly.find(params[:hangout_id])
+  end
+
+  def set_confirmation
+    hangout_id = Hangout.friendly.find(params[:hangout_id]).id
+    @confirmation = current_user.confirmations.where('hangout_id = ?',hangout_id)[0]
+    authorize @confirmation
   end
 
   def confirmation_params

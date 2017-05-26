@@ -197,13 +197,21 @@ private
       @render = 'confirmationfollowup'
       @confirmations = Confirmation.all.where('hangout_id = ?',@hangout.id)
       @confirmation_markers = []
-        @confirmations.each do |confirmation|
-          @confirmation_markers << {lat: confirmation.latitude, lng: confirmation.longitude}
-        end
+      @confirmations.each do |confirmation|
+        @confirmation_markers << {lat: confirmation.latitude, lng: confirmation.longitude}
+      end
+
+      @confirmation = current_user.confirmations.where('hangout_id = ?',@hangout.id)
 
       @center = {lat: @hangout.latitude, lng: @hangout.longitude}
       @adj_center = {lat: @hangout.adj_latitude, lng: @hangout.adj_longitude}
       @hangout.radius? ? @radius = @hangout.radius : @radius = 1  #necessary so that javascript can be compiled with radius nil
+
+      respond_to do |format|
+        format.html # show.html.erb
+        format.json { render json: @adj_center } # quel status pour déclancher?
+        format.js # show.js.erb
+      end
 
     elsif @hangout.status == "vote_on_going" || @hangout.status == "vote_on_going_transition"
       @render = 'vote_option'

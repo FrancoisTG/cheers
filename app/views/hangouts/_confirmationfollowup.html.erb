@@ -15,7 +15,10 @@
       <div class="collapsible-header active">  <%= image_tag current_user.facebook_picture_url, class: 'circle user z-depth-2' %><br><h5><%= "#{current_user.first_name} #{current_user.last_name}" %></h5></div>
       <div class="collapsible-body">
         <% unless @hangout.user == current_user %>
-          <%= button_to t('.button_cancel'), share_hangout_path(@hangout), method: :get, class: "btn-small" %>
+
+          <%= button_to t('.button_cancel'), hangout_confirmation_path(@hangout, @confirmation), method: :delete, class: "btn-small" %>
+
+
         <% else %>
         <p>Inicie a votação quando quiser ou convide mais amigos</p>
         <div class="valign-wrapper orange-text accent-4" style="justify-content: center;">
@@ -70,17 +73,17 @@
 
       if ( <%= @confirmation_markers.count%> > 1) {
         map.fitBounds(bounds);
-      //  var center = (<%= raw @center.to_json %>);
-      //  var cityCircle = new google.maps.Circle({
-      //    strokeColor: '#FF0000',
-      //    strokeOpacity: 0.8,
-      //    strokeWeight: 2,
-      //    fillColor: '#FF0000',
-      //    fillOpacity: 0.35,
-      //    map: map,
-      //    center: {lat: center.lat, lng: center.lng},
-      //    radius: <%=@radius%>
-      //  });
+        var center = (<%= raw @center.to_json %>);
+        var cityCircle = new google.maps.Circle({
+          strokeColor: '#FF0000',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: '#FF0000',
+          fillOpacity: 0.35,
+          map: map,
+          center: {lat: center.lat, lng: center.lng},
+          radius: <%=@radius%>
+        });
 
         var center = (<%= raw @adj_center.to_json %>);
         var cityCircle = new google.maps.Circle({
@@ -99,7 +102,29 @@
         map.panTo({lat: markers[0].lat, lng: markers[0].lng})
       };
 
+      ping = setInterval(test, 300);
       // function get hangout status when true/ set interval/ ajax get /  circle
     });
+
+    function test() {
+      var url = "<%= "/hangouts/#{@hangout.slug}"%>"
+      console.log(url);
+      $.ajax({
+        type: "GET",
+        dataType: "json",
+        url: url,
+        success: function(data){
+          console.log(data);
+          clearInterval(ping);
+          $.ajax({
+            type: "GET",
+            dataType: "script",
+            url: url,
+            success: function(data){console.log(data)}
+          });
+        }
+      });
+    }
+
   <% end %>
 <% end %>
