@@ -207,10 +207,12 @@ private
       @adj_center = {lat: @hangout.adj_latitude, lng: @hangout.adj_longitude}
       @hangout.radius? ? @radius = @hangout.radius : @radius = 1  #necessary so that javascript can be compiled with radius nil
 
-      respond_to do |format|
-        format.html # show.html.erb
-        format.json { render json: @adj_center } # quel status pour déclancher?
-        format.js # show.js.erb
+      if @hangout.adj_ready == true
+        respond_to do |format|
+          format.html # show.html.erb
+          format.json { render json: @adj_center } # quel status pour déclancher?
+          format.js # show.js.erb
+        end
       end
 
     elsif @hangout.status == "vote_on_going" || @hangout.status == "vote_on_going_transition"

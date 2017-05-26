@@ -144,6 +144,7 @@ en:
       guest-collapse: Confirmed guests
       status: Waiting for the other guests to confirm
       toast: Area calculated to optimize travel time for participants
+      message: Start the vote when you want or invite more friends
     edit:
       alert_delete: Are you sure you want to delete the event?
       edit_title: Edit you Kippis event

@@ -18,7 +18,6 @@ class ConfirmationsController < ApplicationController
     @confirmation.hangout = @hangout
     authorize @confirmation
 
-
     if @confirmation.save
       if @hangout.confirmations.count == 1
         # if 1st confirmation, initiate hangout geo data
@@ -41,7 +40,8 @@ class ConfirmationsController < ApplicationController
         end
       else
         unless @hangout.optimize_location == false
-          search_zone
+          fetch_zoneb
+          SearchZoneJob.perform_later(@hangout.id)
         end
         ConfirmationMailer.guest_confirmed(@confirmation).deliver_later    ####   mail
         redirect_to hangout_path(@hangout)
@@ -143,6 +143,25 @@ private
     # *Strong params*: You need to *whitelist* what can be updated by the user
     # Never trust user data!
     params.require(:confirmation).permit(:leaving_address, :transportation, :latitude, :longitude)
+  end
+
+  def fetch_zoneb
+    #Building array of markers with leaving lat/lng of the confirmations
+    confirmations = Confirmation.all.where('hangout_id = ?',@hangout.id)
+    nb = confirmations.count
+    avg_lat = confirmations.reduce(0){ |sum, el| sum + el.latitude}.to_f / nb
+    avg_ln = confirmations.reduce(0){ |sum, el| sum + el.longitude}.to_f / nb
+
+    delta_lat = (confirmations.max_by {|x| x.latitude}).latitude - (confirmations.min_by {|x| x.latitude}).latitude
+    delta_lng = (confirmations.max_by {|x| x.longitude}).longitude - (confirmations.min_by {|x| x.longitude}).longitude
+    raw_radius = (delta_lat + delta_lng) / 4
+    magic_factor = 20000 #factor to size sensibility of the radius vs. distance between participants
+    min_radius = 800
+    @hangout.radius = [raw_radius * magic_factor, min_radius].max
+    @hangout.latitude = avg_lat
+    @hangout.longitude = avg_ln
+    @hangout.adj_ready = false   #reset status to track when adj_coord are ready
+    @hangout.save
   end
 
 end

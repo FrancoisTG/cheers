@@ -5,9 +5,17 @@
 </div>
 <div class="status-wrapper">
   <p class="white-text center-align"><%= t('.status') %></p>
+  <div class="toast-custom visibility"><%= t('.toast')%> </div>
 </div>
 
-<div id="map" style="width: 100%; height: 230px;"></div>
+
+
+<div class="map-wrapper">
+  <div id="map" style="width: 100%; height: 230px;"></div>
+  <div id=circlemap ></div>
+</div>
+
+
 
 <div class="row">
   <ul class="collapsible collapsible-li center-align z-depth-1" data-collapsible="expandable">
@@ -20,7 +28,7 @@
 
 
         <% else %>
-        <p>Inicie a votação quando quiser ou convide mais amigos</p>
+        <p><%= t('.message')%></p>
         <div class="valign-wrapper orange-text accent-4" style="justify-content: center;">
             <%= button_to t('.button_launch_vote'), launch_vote_hangout_path(@hangout), method: :patch, class: "btn-small" %>
           <%= button_to share_hangout_path(@hangout), method: :get, class: "btn-small green lighten-1" do %>
@@ -53,10 +61,6 @@
 
 
 <% content_for(:after_js) do %>
-  <script type="text/javascript">
-    Materialize.toast("<%= t('.toast') %>", 3000);
-  </script>
-
   <%= javascript_tag do %>
 
     $(document).ready(function initMap() {
@@ -74,36 +78,24 @@
       if ( <%= @confirmation_markers.count%> > 1) {
         map.fitBounds(bounds);
         var center = (<%= raw @center.to_json %>);
-        var cityCircle = new google.maps.Circle({
-          strokeColor: '#FF0000',
-          strokeOpacity: 0.8,
-          strokeWeight: 2,
-          fillColor: '#FF0000',
-          fillOpacity: 0.35,
-          map: map,
-          center: {lat: center.lat, lng: center.lng},
-          radius: <%=@radius%>
-        });
-
-        var center = (<%= raw @adj_center.to_json %>);
-        var cityCircle = new google.maps.Circle({
-          strokeColor: '#FC6F04',
-          strokeOpacity: 0.8,
-          strokeWeight: 2,
-          fillColor: '#FFC836',
-          fillOpacity: 0.35,
-          map: map,
-          center: {lat: center.lat, lng: center.lng},
-          radius: <%=@radius%>
-        });
+      //  var cityCircle = new google.maps.Circle({
+      //    strokeColor: '#FF0000',
+      //    strokeOpacity: 0.8,
+      //    strokeWeight: 2,
+      //    fillColor: '#FF0000',
+      //    fillOpacity: 0.35,
+      //    map: map,
+      //    center: {lat: center.lat, lng: center.lng},
+      //    radius: <%=@radius%>
+      //  });
+        map.panTo({lat: center.lat, lng: center.lng})
+        $('.toast-custom').toggleClass('visibility')
+        ping = setInterval(test, 300);
       }
       else {
         map.setZoom(14);
         map.panTo({lat: markers[0].lat, lng: markers[0].lng})
       };
-
-      ping = setInterval(test, 300);
-      // function get hangout status when true/ set interval/ ajax get /  circle
     });
 
     function test() {
@@ -115,13 +107,22 @@
         url: url,
         success: function(data){
           console.log(data);
+          console.log(data["lat"])
           clearInterval(ping);
-          $.ajax({
-            type: "GET",
-            dataType: "script",
-            url: url,
-            success: function(data){console.log(data)}
+          var center = (<%= raw @adj_center.to_json %>);
+          var cityCircle = new google.maps.Circle({
+            strokeColor: '#FC6F04',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#FFC836',
+            fillOpacity: 0.35,
+            map: map,
+            center: {lat: data["lat"], lng: data["lng"]},
+            radius: <%=@radius%>
           });
+          map.panTo({lat: data["lat"], lng: data["lng"]});
+          $('.toast-custom').toggleClass('visibility');
+          $('#circlemap').remove();
         }
       });
     }

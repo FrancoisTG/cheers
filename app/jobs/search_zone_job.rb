@@ -3,7 +3,7 @@ class SearchZoneJob < ApplicationJob
 
   def perform(hangout_id)
     hg = Hangout.find(hangout_id)
-
+    sleep 10
     #Building array of markers with leaving lat/lng of the confirmations
     confirmations = Confirmation.all.where('hangout_id = ?',hg.id)
 puts "*************puts n1 ******************************"
@@ -38,6 +38,7 @@ puts "*************oufff******************************"
     hg.longitude = center[:lng]
     hg.adj_latitude = adj_center2[:lat]
     hg.adj_longitude = adj_center2[:lng]
+    hg.adj_ready = true
     hg.save
   end
 
