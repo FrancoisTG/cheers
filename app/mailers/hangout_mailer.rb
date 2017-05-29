@@ -2,7 +2,7 @@ class HangoutMailer < ApplicationMailer
 
   def creation_confirmation(hangout_id)
     @hangout = Hangout.find(hangout_id)
-    @user = hangout.user
+    @user = @hangout.user
     mail(
       to:       @hangout.user.email,
       subject: default_i18n_subject(hangout_title: @hangout.title)
@@ -11,7 +11,7 @@ class HangoutMailer < ApplicationMailer
 
   def update_confirmation(hangout_id)
     @hangout = Hangout.find(hangout_id)
-    @user = hangout.user
+    @user = @hangout.user
     mail(
       to:       @hangout.user.email,
       subject: default_i18n_subject(hangout_title: @hangout.title)
@@ -65,6 +65,4 @@ class HangoutMailer < ApplicationMailer
         subject:  default_i18n_subject(hangout_title: @hangout.title)
       )
   end
-
-
 end

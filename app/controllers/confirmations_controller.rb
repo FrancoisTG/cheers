@@ -40,7 +40,8 @@ class ConfirmationsController < ApplicationController
         end
       else
         unless @hangout.optimize_location == false
-          fetch_zoneb
+          @hangout.adj_ready = false
+          @hangout.save
           SearchZoneJob.perform_later(@hangout.id)
         end
         ConfirmationMailer.guest_confirmed(@confirmation.id).deliver_later    ####   mail
@@ -52,6 +53,7 @@ class ConfirmationsController < ApplicationController
   end
 
   def destroy
+    ConfirmationMailer.guest_cancelled(@confirmation.id).deliver_now    ####   mail
     @confirmation.destroy
     if @hangout.confirmations.count == 1
       sole_confirmation = @hangout.confirmations[0]
@@ -64,7 +66,6 @@ class ConfirmationsController < ApplicationController
     end
 
     redirect_to profiles_show_path
-    ConfirmationMailer.guest_cancelled(@confirmation.id).deliver_later    ####   mail
     flash[:notice] = "Cancelamento feito!"
   end
 
@@ -94,50 +95,8 @@ class ConfirmationsController < ApplicationController
     @hangout.adj_longitude = adj_center2[:lng]
     @hangout.save
   end
+
 private
-  def fetch_zone(confirmations)
-    nb = confirmations.count
-    avg_lat = confirmations.reduce(0){ |sum, el| sum + el.latitude}.to_f / nb
-    avg_ln = confirmations.reduce(0){ |sum, el| sum + el.longitude}.to_f / nb
-    center = {lat: avg_lat, lng: avg_ln}
-
-    delta_lat = (confirmations.max_by {|x| x.latitude}).latitude - (confirmations.min_by {|x| x.latitude}).latitude
-    delta_lng = (confirmations.max_by {|x| x.longitude}).longitude - (confirmations.min_by {|x| x.longitude}).longitude
-    raw_radius = (delta_lat + delta_lng) / 4
-    magic_factor = 20000 #factor to size sensibility of the radius vs. distance between participants
-    min_radius = 800
-    @hangout.radius = [raw_radius * magic_factor, min_radius].max
-    return center
-  end
-
-  def fetch_adjusted_zone(confirmations, center)
-    div = confirmations.reduce(0){ |sum, el| sum + el.time_to_place}
-    avg_lat = confirmations.reduce(0){ |sum, el| sum + el.latitude*el.time_to_place}.to_f / div
-    avg_ln = confirmations.reduce(0){ |sum, el| sum + el.longitude*el.time_to_place}.to_f / div
-    weighted_center = {lat: avg_lat, lng: avg_ln}
-    adj_center = {lat: (weighted_center[:lat] + center[:lat]) / 2 , lng: (weighted_center[:lng] + center[:lng]) / 2 }
-    return adj_center
-  end
-
-  def get_direction(confirmation, destination, departure_time)
-    url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=#{confirmation.latitude},#{confirmation.longitude}&destinations=#{destination[:lat]},#{destination[:lng]}&departure_time=#{departure_time.to_i}&mode=#{confirmation.transportation.downcase}&key=#{ENV['GOOGLE_API_SERVER_KEY']}"
-    puts "****************url = #{url}"
-    url.gsub!('"')
-    direction_anwser = RestClient.get url, {accept: :json}
-    #direction_anwser = RestClient::Request.execute(method: :get, url: url, timeout: 30)
-
-    direction_info = JSON.parse(direction_anwser)
-    confirmation.distance_to_place = direction_info["rows"][0]["elements"][0]["distance"]["value"]
-    if confirmation.transportation == 'DRIVING'
-      confirmation.time_to_place = direction_info["rows"][0]["elements"][0]["duration_in_traffic"]["value"]
-    else
-      confirmation.time_to_place = direction_info["rows"][0]["elements"][0]["duration"]["value"]
-    end
-    authorize confirmation
-    confirmation.save
-    return confirmation
-  end
-
   def set_hangout
     @hangout = Hangout.friendly.find(params[:hangout_id])
   end
@@ -153,24 +112,4 @@ private
     # Never trust user data!
     params.require(:confirmation).permit(:leaving_address, :transportation, :latitude, :longitude)
   end
-
-  def fetch_zoneb
-    #Building array of markers with leaving lat/lng of the confirmations
-    confirmations = Confirmation.all.where('hangout_id = ?',@hangout.id)
-    nb = confirmations.count
-    avg_lat = confirmations.reduce(0){ |sum, el| sum + el.latitude}.to_f / nb
-    avg_ln = confirmations.reduce(0){ |sum, el| sum + el.longitude}.to_f / nb
-
-    delta_lat = (confirmations.max_by {|x| x.latitude}).latitude - (confirmations.min_by {|x| x.latitude}).latitude
-    delta_lng = (confirmations.max_by {|x| x.longitude}).longitude - (confirmations.min_by {|x| x.longitude}).longitude
-    raw_radius = (delta_lat + delta_lng) / 4
-    magic_factor = 20000 #factor to size sensibility of the radius vs. distance between participants
-    min_radius = 800
-    @hangout.radius = [raw_radius * magic_factor, min_radius].max
-    @hangout.latitude = avg_lat
-    @hangout.longitude = avg_ln
-    @hangout.adj_ready = false   #reset status to track when adj_coord are ready
-    @hangout.save
-  end
-
 end

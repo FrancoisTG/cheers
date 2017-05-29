@@ -164,7 +164,7 @@
 
     #update travel time and distance
     owner_confirmation = @hangout.confirmations.where('user_id = ?', @hangout.user.id)
-    GetDirectionJob.perform_now(ower_confirmation.id)
+    GetDirectionJob.perform_now(owner_confirmation[0].id)
     @hangout.confirmations.each do |confirmation|
       if confirmation.user != @hangout.user
         HangoutMailer.result(confirmation.id).deliver_later ####   mail
@@ -249,23 +249,6 @@ private
       @render = 'cancelled'
     end
   end
-
-  def get_direction(confirmation, destination, departure_time)
-    url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=#{confirmation.latitude},#{confirmation.longitude}&destinations=#{destination[:lat]},#{destination[:lng]}&departure_time=#{departure_time.to_i}&mode=#{confirmation.transportation.downcase}&key=#{ENV['GOOGLE_API_SERVER_KEY']}"
-    url.gsub!('"')
-    direction = RestClient.get url
-    direction_info = JSON.parse(direction)
-    confirmation.distance_to_place = direction_info["rows"][0]["elements"][0]["distance"]["value"]
-    if confirmation.transportation == 'DRIVING'
-      confirmation.time_to_place = direction_info["rows"][0]["elements"][0]["duration_in_traffic"]["value"]
-    else
-      confirmation.time_to_place = direction_info["rows"][0]["elements"][0]["duration"]["value"]
-    end
-    authorize confirmation
-    confirmation.save
-    return confirmation
-  end
-
 
   def valid_param?(hangout)
     unless hangout.title.nil?

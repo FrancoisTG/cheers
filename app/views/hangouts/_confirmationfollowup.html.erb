@@ -80,6 +80,7 @@
       if ( <%= @confirmation_markers.count%> > 1) {
         map.fitBounds(bounds);
         var center = (<%= raw @center.to_json %>);
+        console.log(center);
       //  var cityCircle = new google.maps.Circle({
       //    strokeColor: '#FF0000',
       //    strokeOpacity: 0.8,
@@ -112,6 +113,7 @@
           console.log(data["lat"])
           clearInterval(ping);
           var center = (<%= raw @adj_center.to_json %>);
+          console.log(center);
           var cityCircle = new google.maps.Circle({
             strokeColor: '#FC6F04',
             strokeOpacity: 0.8,

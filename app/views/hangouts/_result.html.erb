@@ -82,31 +82,23 @@
     $(document).ready(function() {
       var departure = (<%= raw @departure.to_json %>);
       var direction = (<%= raw @direction.to_json %>);
-      var selectedMode = 'bicylcing'; //(<%= raw @transport.to_json %>);
-
-      var totalDistance = 0;
-      var totalDuration = 0;
-
-      console.log(selectedMode)
+      var selectedMode = (<%= raw @transport.to_json %>);
 
       initMap();
-
       function initMap() {
         var directionsDisplay = new google.maps.DirectionsRenderer; //({suppressMarkers : true});
         var directionsService = new google.maps.DirectionsService;
-      console.log(directionsService)
+        console.log(directionsService)
         var map = new google.maps.Map(document.getElementById('direction_map'), window.MAP_OPTIONS);
         directionsDisplay.setMap(map);
-
         calculateAndDisplayRoute(directionsService, directionsDisplay);
       }
 
       function calculateAndDisplayRoute(directionsService, directionsDisplay) {
-
         directionsService.route({
           origin: {lat: departure.lat, lng: departure.lng},
           destination: {lat: direction.lat, lng: direction.lng},
-          travelMode: google.maps.TravelMode['BICYCLING'],
+          travelMode: google.maps.TravelMode[selectedMode],
           unitSystem: google.maps.UnitSystem.METRIC,
         },
         function(response, status) {

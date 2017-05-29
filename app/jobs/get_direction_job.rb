@@ -20,11 +20,5 @@ class GetDirectionJob < ApplicationJob
     end
     # authorize confirmation
     confirmation.save
-    return confirmation
-  end
-
-
-
-    # Do something later
   end
 end
