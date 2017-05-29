@@ -5,8 +5,8 @@ class ConfirmationMailer < ApplicationMailer
   #
   #   en.confirmation_mailer.guest_confirmed.subject
   #
-  def guest_confirmed(confirmation)
-    @confirmation = confirmation
+  def guest_confirmed(confirmation_id)
+    @confirmation = Confirmation.find(confirmation_id)
     @hangout = @confirmation.hangout
     @guest = @confirmation.user
     @owner = @hangout.user
@@ -22,8 +22,8 @@ class ConfirmationMailer < ApplicationMailer
   #
   #   en.confirmation_mailer.guest_cancelled.subject
   #
-  def guest_cancelled(confirmation)
-    @confirmation = confirmation
+  def guest_cancelled(confirmation_id)
+    @confirmation = Confirmation.find(confirmation_id)
     @hangout = @confirmation.hangout
     @guest = @confirmation.user
     @owner = @hangout.user

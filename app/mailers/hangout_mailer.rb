@@ -1,7 +1,7 @@
 class HangoutMailer < ApplicationMailer
 
-  def creation_confirmation(hangout)
-    @hangout = hangout
+  def creation_confirmation(hangout_id)
+    @hangout = Hangout.find(hangout_id)
     @user = hangout.user
     mail(
       to:       @hangout.user.email,
@@ -9,8 +9,8 @@ class HangoutMailer < ApplicationMailer
     )
   end
 
-  def update_confirmation(hangout)
-    @hangout = hangout
+  def update_confirmation(hangout_id)
+    @hangout = Hangout.find(hangout_id)
     @user = hangout.user
     mail(
       to:       @hangout.user.email,
@@ -18,8 +18,8 @@ class HangoutMailer < ApplicationMailer
     )
   end
 
-  def vote_starting(confirmation)
-    @confirmation = confirmation
+  def vote_starting(confirmation_id)
+    @confirmation = Confirmation.find(confirmation_id)
     @hangout = @confirmation.hangout
     @guest = @confirmation.user
     @owner = @hangout.user
@@ -29,8 +29,8 @@ class HangoutMailer < ApplicationMailer
       )
   end
 
-  def hangout_update(confirmation)
-    @confirmation = confirmation
+  def hangout_update(confirmation_id)
+    @confirmation = Confirmation.find(confirmation_id)
     @hangout = @confirmation.hangout
     @guest = @confirmation.user
     @owner = @hangout.user
@@ -41,8 +41,8 @@ class HangoutMailer < ApplicationMailer
       )
   end
 
-  def cancelled(confirmation)
-    @confirmation = confirmation
+  def cancelled(confirmation_id)
+    @confirmation = Confirmation.find(confirmation_id)
     @hangout = @confirmation.hangout
     @guest = @confirmation.user
     @owner = @hangout.user
@@ -53,8 +53,8 @@ class HangoutMailer < ApplicationMailer
       )
   end
 
-  def result(confirmation)
-    @confirmation = confirmation
+  def result(confirmation_id)
+    @confirmation = Confirmation.find(confirmation_id)
     @hangout = @confirmation.hangout
     @place = @hangout.place
     @guest = @confirmation.user

@@ -39,7 +39,7 @@
         @hangout.radius = 800
       end
       if @hangout.save
-      HangoutMailer.creation_confirmation(@hangout).deliver_now    ####   mail
+      HangoutMailer.creation_confirmation(@hangout.id).deliver_later    ####   mail
       redirect_to new_hangout_confirmation_path(@hangout)
       flash[:notice] = "Hangout criado com sucesso!"
       else
@@ -92,7 +92,7 @@
     @hangout.save
     @hangout.confirmations.each do |confirmation|
       if confirmation.user != @hangout.user
-        HangoutMailer.vote_starting(confirmation).deliver_later ####   mail
+        HangoutMailer.vote_starting(confirmation.id).deliver_later ####   mail
       end
     end
     redirect_to hangout_path(@hangout)
@@ -105,10 +105,10 @@
   def update
     @hangout.update_attributes(hangout_params)
     #launch_vote_hangout_path(@hangout)
-    HangoutMailer.update_confirmation(@hangout).deliver_now
+    HangoutMailer.update_confirmation(@hangout.id).deliver_later
     @hangout.confirmations.each do |confirmation|
       if confirmation.user != @hangout.user
-        HangoutMailer.hangout_update(confirmation).deliver_now ####   mail
+        HangoutMailer.hangout_update(confirmation.id).deliver_later ####   mail
       end
     end
     redirect_to hangout_path(@hangout)
@@ -121,7 +121,7 @@
     @hangout.save
     @hangout.confirmations.each do |confirmation|
       if confirmation.user != @hangout.user
-        HangoutMailer.cancelled(confirmation).deliver_now ####   mail
+        HangoutMailer.cancelled(confirmation.id).deliver_later ####   mail
       end
     end
     redirect_to profiles_show_path
@@ -160,15 +160,16 @@
     @hangout.status = "result"
     @hangout.save!
 
-    winner_coord = {lat: winner.latitude, lng: winner.longitude}
-    #update travel time and distance
-    @hangout.confirmations.each do |confirmation|
-      get_direction(confirmation, winner_coord, @hangout.date)
-    end
+    # winner_coord = {lat: winner.latitude, lng: winner.longitude}
 
+    #update travel time and distance
+    owner_confirmation = @hangout.confirmations.where('user_id = ?', @hangout.user.id)
+    GetDirectionJob.perform_now(ower_confirmation.id)
     @hangout.confirmations.each do |confirmation|
       if confirmation.user != @hangout.user
-        HangoutMailer.result(confirmation).deliver_now ####   mail
+        HangoutMailer.result(confirmation.id).deliver_later ####   mail
+        GetDirectionJob.perform_later(confirmation.id)
+      # get_direction(confirmation, winner_coord, @hangout.date)
       end
     end
     redirect_to hangout_path(@hangout)

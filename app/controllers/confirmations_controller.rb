@@ -35,7 +35,7 @@ class ConfirmationsController < ApplicationController
         if @hangout.user == current_user
           redirect_to share_hangout_path(@hangout)
         else
-          ConfirmationMailer.guest_confirmed(@confirmation).deliver_later    ####   mail
+          ConfirmationMailer.guest_confirmed(@confirmation.id).deliver_later    ####   mail
           redirect_to hangout_path(@hangout)
         end
       else
@@ -43,7 +43,7 @@ class ConfirmationsController < ApplicationController
           fetch_zoneb
           SearchZoneJob.perform_later(@hangout.id)
         end
-        ConfirmationMailer.guest_confirmed(@confirmation).deliver_later    ####   mail
+        ConfirmationMailer.guest_confirmed(@confirmation.id).deliver_later    ####   mail
         redirect_to hangout_path(@hangout)
       end
     else
@@ -53,9 +53,18 @@ class ConfirmationsController < ApplicationController
 
   def destroy
     @confirmation.destroy
-    search_zone
+    if @hangout.confirmations.count == 1
+      sole_confirmation = @hangout.confirmations[0]
+      @hangout.latitude = sole_confirmation.latitude
+      @hangout.longitude = sole_confirmation.longitude
+      @hangout.adj_latitude = sole_confirmation.latitude
+      @hangout.adj_longitude = sole_confirmation.longitude
+    else
+      SearchZoneJob.perform_later(@hangout.id)
+    end
+
     redirect_to profiles_show_path
-    ConfirmationMailer.guest_cancelled(@confirmation).deliver_later    ####   mail
+    ConfirmationMailer.guest_cancelled(@confirmation.id).deliver_later    ####   mail
     flash[:notice] = "Cancelamento feito!"
   end
 

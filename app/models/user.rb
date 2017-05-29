@@ -45,7 +45,7 @@ private
   end
 
   def send_welcome_email
-    UserMailer.welcome(self).deliver_now
+    UserMailer.welcome(self.id).deliver_later
   end
 
 end

@@ -3,10 +3,9 @@ class SearchZoneJob < ApplicationJob
 
   def perform(hangout_id)
     hg = Hangout.find(hangout_id)
-    sleep 10
+    # sleep 10
     #Building array of markers with leaving lat/lng of the confirmations
     confirmations = Confirmation.all.where('hangout_id = ?',hg.id)
-puts "*************puts n1 ******************************"
     #Getting unadjusted search zone and define radius
     nb = confirmations.count
     avg_lat = confirmations.reduce(0){ |sum, el| sum + el.latitude}.to_f / nb
@@ -25,7 +24,6 @@ puts "*************center: #{center[:lat]} / #{center[:lng]} *******************
       get_direction(confirmation, center, hg.date)
     end
     #recalcute center adjusting lat, lng with duration
-puts "*************puts n3 ******************************"
     adj_center = fetch_adjusted_zone(confirmations, center)
 puts "*************adj_center: #{adj_center[:lat]} / #{adj_center[:lng]} ******************************"
     #one more iteration for accuracy
