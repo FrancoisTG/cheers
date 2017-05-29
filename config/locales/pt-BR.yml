@@ -136,6 +136,7 @@ pt-BR:
       guest-collapse: Convidados confirmados
       status: Evento aberto para confirmações
       toast: Calculando zona para otimizar o tempo de viagem de cada convidado
+      message: Inicie a votação quando quiser ou convide mais amigos
     edit:
       alert_delete: Tem certeza que deseja excluir esse encontro?
       edit_title: Editar encontro

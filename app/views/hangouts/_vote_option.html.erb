@@ -128,11 +128,11 @@
 
     $(document).ready(function () {
       if (<%= "#{@hangout.place_options.count}"%> !== 0) {return};
-      ping = setInterval(test, 100);
+      ping = setInterval(test, 300);
     });
 
     function test() {
-      var url = "<%= "/hangouts/#{@hangout.id}"%>"
+      var url = "<%= "/hangouts/#{@hangout.slug}"%>"
       console.log(url);
       $.ajax({
         type: "GET",

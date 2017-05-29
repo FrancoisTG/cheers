@@ -39,7 +39,7 @@
         @hangout.radius = 800
       end
       if @hangout.save
-      HangoutMailer.creation_confirmation(@hangout).deliver_now    ####   mail
+      HangoutMailer.creation_confirmation(@hangout.id).deliver_later    ####   mail
       redirect_to new_hangout_confirmation_path(@hangout)
       flash[:notice] = "Hangout criado com sucesso!"
       else
@@ -92,7 +92,7 @@
     @hangout.save
     @hangout.confirmations.each do |confirmation|
       if confirmation.user != @hangout.user
-        HangoutMailer.vote_starting(confirmation).deliver_later ####   mail
+        HangoutMailer.vote_starting(confirmation.id).deliver_later ####   mail
       end
     end
     redirect_to hangout_path(@hangout)
@@ -105,10 +105,10 @@
   def update
     @hangout.update_attributes(hangout_params)
     #launch_vote_hangout_path(@hangout)
-    HangoutMailer.update_confirmation(@hangout).deliver_now
+    HangoutMailer.update_confirmation(@hangout.id).deliver_later
     @hangout.confirmations.each do |confirmation|
       if confirmation.user != @hangout.user
-        HangoutMailer.hangout_update(confirmation).deliver_now ####   mail
+        HangoutMailer.hangout_update(confirmation.id).deliver_later ####   mail
       end
     end
     redirect_to hangout_path(@hangout)
@@ -121,7 +121,7 @@
     @hangout.save
     @hangout.confirmations.each do |confirmation|
       if confirmation.user != @hangout.user
-        HangoutMailer.cancelled(confirmation).deliver_now ####   mail
+        HangoutMailer.cancelled(confirmation.id).deliver_later ####   mail
       end
     end
     redirect_to profiles_show_path
@@ -160,15 +160,16 @@
     @hangout.status = "result"
     @hangout.save!
 
-    winner_coord = {lat: winner.latitude, lng: winner.longitude}
-    #update travel time and distance
-    @hangout.confirmations.each do |confirmation|
-      get_direction(confirmation, winner_coord, @hangout.date)
-    end
+    # winner_coord = {lat: winner.latitude, lng: winner.longitude}
 
+    #update travel time and distance
+    owner_confirmation = @hangout.confirmations.where('user_id = ?', @hangout.user.id)
+    GetDirectionJob.perform_now(owner_confirmation[0].id)
     @hangout.confirmations.each do |confirmation|
       if confirmation.user != @hangout.user
-        HangoutMailer.result(confirmation).deliver_now ####   mail
+        HangoutMailer.result(confirmation.id).deliver_later ####   mail
+        GetDirectionJob.perform_later(confirmation.id)
+      # get_direction(confirmation, winner_coord, @hangout.date)
       end
     end
     redirect_to hangout_path(@hangout)
@@ -197,13 +198,23 @@ private
       @render = 'confirmationfollowup'
       @confirmations = Confirmation.all.where('hangout_id = ?',@hangout.id)
       @confirmation_markers = []
-        @confirmations.each do |confirmation|
-          @confirmation_markers << {lat: confirmation.latitude, lng: confirmation.longitude}
-        end
+      @confirmations.each do |confirmation|
+        @confirmation_markers << {lat: confirmation.latitude, lng: confirmation.longitude}
+      end
+
+      @confirmation = current_user.confirmations.where('hangout_id = ?',@hangout.id)
 
       @center = {lat: @hangout.latitude, lng: @hangout.longitude}
       @adj_center = {lat: @hangout.adj_latitude, lng: @hangout.adj_longitude}
       @hangout.radius? ? @radius = @hangout.radius : @radius = 1  #necessary so that javascript can be compiled with radius nil
+
+      if @hangout.adj_ready == true
+        respond_to do |format|
+          format.html # show.html.erb
+          format.json { render json: @adj_center } # quel status pour déclancher?
+          format.js # show.js.erb
+        end
+      end
 
     elsif @hangout.status == "vote_on_going" || @hangout.status == "vote_on_going_transition"
       @render = 'vote_option'
@@ -238,23 +249,6 @@ private
       @render = 'cancelled'
     end
   end
-
-  def get_direction(confirmation, destination, departure_time)
-    url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=#{confirmation.latitude},#{confirmation.longitude}&destinations=#{destination[:lat]},#{destination[:lng]}&departure_time=#{departure_time.to_i}&mode=#{confirmation.transportation.downcase}&key=#{ENV['GOOGLE_API_SERVER_KEY']}"
-    url.gsub!('"')
-    direction = RestClient.get url
-    direction_info = JSON.parse(direction)
-    confirmation.distance_to_place = direction_info["rows"][0]["elements"][0]["distance"]["value"]
-    if confirmation.transportation == 'DRIVING'
-      confirmation.time_to_place = direction_info["rows"][0]["elements"][0]["duration_in_traffic"]["value"]
-    else
-      confirmation.time_to_place = direction_info["rows"][0]["elements"][0]["duration"]["value"]
-    end
-    authorize confirmation
-    confirmation.save
-    return confirmation
-  end
-
 
   def valid_param?(hangout)
     unless hangout.title.nil?

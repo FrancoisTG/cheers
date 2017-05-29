@@ -1,25 +1,25 @@
 class HangoutMailer < ApplicationMailer
 
-  def creation_confirmation(hangout)
-    @hangout = hangout
-    @user = hangout.user
+  def creation_confirmation(hangout_id)
+    @hangout = Hangout.find(hangout_id)
+    @user = @hangout.user
     mail(
       to:       @hangout.user.email,
       subject: default_i18n_subject(hangout_title: @hangout.title)
     )
   end
 
-  def update_confirmation(hangout)
-    @hangout = hangout
-    @user = hangout.user
+  def update_confirmation(hangout_id)
+    @hangout = Hangout.find(hangout_id)
+    @user = @hangout.user
     mail(
       to:       @hangout.user.email,
       subject: default_i18n_subject(hangout_title: @hangout.title)
     )
   end
 
-  def vote_starting(confirmation)
-    @confirmation = confirmation
+  def vote_starting(confirmation_id)
+    @confirmation = Confirmation.find(confirmation_id)
     @hangout = @confirmation.hangout
     @guest = @confirmation.user
     @owner = @hangout.user
@@ -29,8 +29,8 @@ class HangoutMailer < ApplicationMailer
       )
   end
 
-  def hangout_update(confirmation)
-    @confirmation = confirmation
+  def hangout_update(confirmation_id)
+    @confirmation = Confirmation.find(confirmation_id)
     @hangout = @confirmation.hangout
     @guest = @confirmation.user
     @owner = @hangout.user
@@ -41,8 +41,8 @@ class HangoutMailer < ApplicationMailer
       )
   end
 
-  def cancelled(confirmation)
-    @confirmation = confirmation
+  def cancelled(confirmation_id)
+    @confirmation = Confirmation.find(confirmation_id)
     @hangout = @confirmation.hangout
     @guest = @confirmation.user
     @owner = @hangout.user
@@ -53,8 +53,8 @@ class HangoutMailer < ApplicationMailer
       )
   end
 
-  def result(confirmation)
-    @confirmation = confirmation
+  def result(confirmation_id)
+    @confirmation = Confirmation.find(confirmation_id)
     @hangout = @confirmation.hangout
     @place = @hangout.place
     @guest = @confirmation.user
@@ -65,6 +65,4 @@ class HangoutMailer < ApplicationMailer
         subject:  default_i18n_subject(hangout_title: @hangout.title)
       )
   end
-
-
 end
